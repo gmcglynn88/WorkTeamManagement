@@ -517,7 +517,7 @@
   
   <script>
     // ===== OAuth Config =====
-    const clientId = '4652c8b5-9117-43c6-8e54-738aebb8';
+    const clientId = 'd4529142-7340-4cd8-a9f9-f3a4d25670df';
     
     // Use the EXACT URI that's registered in Genesys Cloud
     const redirectUri = 'https://gmcglynn88.github.io/WorkTeamManagement/';
