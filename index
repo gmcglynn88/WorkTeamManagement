@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work Team Management - AdminHub by IPI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Aptos:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #63AB8F;
+      --primary-dark: #549e7a;
+      --header-bg: #63AB8F;
+      --text-dark: #2c3e50;
+      --text-medium: #555;
+      --text-light: #777;
+      --border-color: #ddd;
+      --light-bg: #f5f7fa;
+      --card-bg: #f9f9f9;
+      --error-color: #dc3545;
+      --success-color: #28a745;
+      --info-color: #17a2b8;
+      --warning-color: #ffc107;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Aptos', Arial, sans-serif;
+      background-color: var(--light-bg);
+      color: var(--text-dark);
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    header {
+      background-color: var(--header-bg);
+      color: white;
+      padding: 15px 5%;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: fixed;
+      width: 100%;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .logo img {
+      height: 40px;
+    }
+    
+    .app-container {
+      display: flex;
+      flex: 1;
+      margin-top: 70px;
+      width: 100%;
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .sidebar {
+      width: 250px;
+      background-color: white;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      height: calc(100vh - 70px);
+      overflow-y: auto;
+      left: 0;
+    }
+    
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    .sidebar a {
+      background-color: transparent;
+      border: none;
+      padding: 12px 25px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 15px;
+      color: var(--text-medium);
+      width: 100%;
+      transition: all 0.3s;
+      border-left: 3px solid transparent;
+      display: flex;
+      justify-content: flex-end;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    
+    .sidebar a:hover {
+      background-color: rgba(99, 171, 143, 0.1);
+      color: var(--text-dark);
+    }
+    
+    .sidebar a.active {
+      background-color: rgba(99, 171, 143, 0.1);
+      color: var(--primary-color);
+      border-left: 3px solid var(--primary-color);
+      font-weight: 500;
+    }
+    
+    .sidebar a i {
+      margin-right: 10px;
+      width: 20px;
+      text-align: center;
+      font-style: normal;
+      flex-shrink: 0;
+    }
+    
+    .content-area {
+      flex: 1;
+      padding: 30px 20px;
+      margin-left: 250px;
+      width: calc(100% - 250px);
+      max-width: 100%;
+    }
+    
+    .app-window {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+      padding: 30px;
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+    }
+    
+    /* Common Form Styles */
+    .form-section {
+      margin-bottom: 30px;
+      width: 100%;
+    }
+    
+    .form-section h2 {
+      color: var(--text-dark);
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--primary-color);
+      display: inline-block;
+    }
+    
+    .form-section h3 {
+      color: var(--text-dark);
+      font-size: 18px;
+      font-weight: 500;
+      margin: 25px 0 15px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 25px;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+    
+    .form-group {
+      flex: 1;
+      min-width: 250px;
+      max-width: 100%;
+    }
+    
+    label {
+      display: block;
+      font-weight: 500;
+      color: var(--text-medium);
+      margin-bottom: 8px;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 15px;
+      transition: all 0.3s;
+      max-width: 100%;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(99, 171, 143, 0.2);
+    }
+    
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    button:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .status-message {
+      margin-top: 20px;
+      padding: 12px 15px;
+      border-radius: 6px;
+      border-left: 4px solid transparent;
+    }
+    
+    .error {
+      color: var(--error-color);
+      background-color: rgba(220, 53, 69, 0.1);
+      border-left-color: var(--error-color);
+    }
+    
+    .success {
+      color: var(--success-color);
+      background-color: rgba(40, 167, 69, 0.1);
+      border-left-color: var(--success-color);
+    }
+    
+    .info {
+      color: var(--info-color);
+      background-color: rgba(23, 162, 184, 0.1);
+      border-left-color: var(--info-color);
+    }
+    
+    .warning {
+      color: var(--warning-color);
+      background-color: rgba(255, 193, 7, 0.1);
+      border-left-color: var(--warning-color);
+    }
+    
+    /* Results Tables */
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    
+    .results-table th, 
+    .results-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .results-table th {
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 500;
+      position: sticky;
+      top: 0;
+    }
+    
+    .results-table tr:hover {
+      background-color: rgba(99, 171, 143, 0.05);
+    }
+    
+    /* Progress Bar */
+    #progressContainer {
+      margin-top: 10px;
+      display: none;
+    }
+    
+    #teamProgress {
+      width: 100%;
+      height: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    
+    #teamProgress::-webkit-progress-bar {
+      background-color: #f0f0f0;
+      border-radius: 10px;
+    }
+    
+    #teamProgress::-webkit-progress-value {
+      background-color: var(--primary-color);
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+    
+    #teamProgress::-moz-progress-bar {
+      background-color: var(--primary-color);
+      border-radius: 10px;
+    }
+    
+    hr {
+      border: none;
+      border-top: 1px solid var(--border-color);
+      margin: 30px 0;
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 1200px) {
+      .content-area {
+        padding: 30px 15px;
+      }
+      
+      .app-window {
+        padding: 25px;
+      }
+    }
+    
+    @media (max-width: 992px) {
+      .app-container {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 0;
+        position: relative;
+        height: auto;
+        left: auto;
+      }
+      .sidebar a {
+        padding: 15px 20px;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+        white-space: nowrap;
+      }
+      .sidebar a.active {
+        border-left: none;
+        border-bottom: 3px solid var(--primary-color);
+      }
+      .content-area {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px 15px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .content-area {
+        padding: 20px 10px;
+      }
+      .app-window {
+        padding: 20px;
+      }
+      .form-row {
+        gap: 15px;
+      }
+      
+      .results-table th, 
+      .results-table td {
+        padding: 8px 10px;
+        font-size: 14px;
+      }
+      
+      button {
+        padding: 10px 15px;
+        font-size: 14px;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .logo img {
+        margin-left: 0;
+        margin-top: 10px;
+      }
+      
+      .form-group {
+        min-width: 100%;
+      }
+      
+      .results-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>AdminHub by IPI</h1>
+      <div class="logo">
+        <img src="https://raw.githubusercontent.com/gmcglynn88/TimeoffApp/main/IPI_Primary%20Identity_Corporate_REVERSED_ECC.png" alt="IPI Logo">
+      </div>
+    </div>
+  </header>
+  <div class="app-container">
+    <div class="sidebar">
+      <div class="sidebar-nav">
+        <a href="index.html" class="tablink">
+          <i>←</i> Back to Dashboard
+        </a>
+        <a href="#" class="tablink active">
+          <i>👥</i> Work Team Management
+        </a>
+      </div>
+    </div>
+    <div class="content-area">
+      <div class="app-window">
+        <div class="form-section">
+          <h2>Work Team Management</h2>
+          <div id="auth-message" class="status-message info">Authenticating with PureCloud...</div>
+          
+          <!-- Section 1: Manage Team Members by Team -->
+          <h3>Manage Team Members by Team</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="teamDropdown">Select Team (Current Team)</label>
+              <select id="teamDropdown"></select>
+            </div>
+          </div>
+          <button id="loadTeamMembersBtn">Load Team Members</button>
+          <div id="teamStatus" class="status-message" style="display: none;"></div>
+          
+          <!-- Progress Bar -->
+          <div id="progressContainer" style="margin-top: 10px; display: none;">
+            <progress id="teamProgress" value="0" max="100"></progress>
+          </div>
+          
+          <div style="overflow-x: auto; margin-top: 20px;">
+            <table class="results-table" id="teamMembersTable">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="selectAllTeamMembers"></th>
+                  <th>Agent</th>
+                  <th>Current Team</th>
+                  <th>New Team</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          
+          <div class="form-row" style="margin-top: 20px;">
+            <button id="changeTeamBtn">Change Team for Selected Agents</button>
+            <button id="removeFromTeamBtn">Remove Selected From Team</button>
+          </div>
+          
+          <hr />
+          
+          <!-- Section 2: Search Agents Without a Work Team -->
+          <h3>Search Agents Without a Work Team</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="agentSearch">Search Agents</label>
+              <input type="text" id="agentSearch" placeholder="Enter name or email...">
+            </div>
+            <div class="form-group">
+              <button id="searchAgentsBtn" style="margin-top: 25px;">Search Agents</button>
+            </div>
+          </div>
+          <div id="searchStatus" class="status-message" style="display: none;"></div>
+          
+          <div style="overflow-x: auto; margin-top: 20px;">
+            <table class="results-table" id="agentsWithoutTeamTable">
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="selectAllAgentsWithoutTeam"></th>
+                  <th>Agent</th>
+                  <th>New Team</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          
+          <div class="form-row" style="margin-top: 20px;">
+            <button id="addAgentsWithoutTeamBtn">Add Selected Agents To Team</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // ===== OAuth Config =====
+    const clientId = 'd4529142-7340-4cd8-a9f9-f3a4d25670df';
+    const redirectUri = window.location.origin + window.location.pathname;
+    const oauthUrl = `https://login.mypurecloud.ie/oauth/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+    // Debug logging
+    console.log('OAuth Configuration:');
+    console.log('- Client ID:', clientId);
+    console.log('- Redirect URI:', redirectUri);
+    console.log('- Encoded Redirect URI:', encodeURIComponent(redirectUri));
+    console.log('- Full OAuth URL:', oauthUrl);
+
+    let accessToken = null;
+
+    // Work Team Management State
+    let availableTeams = [];
+    let userMapping = {}; // Maps user id to agent name
+
+    // ===== Auth bootstrap =====
+    document.addEventListener('DOMContentLoaded', () => {
+      // Parse OAuth error from the URL
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const qparams = new URLSearchParams(window.location.search);
+
+      const oauthError = params.get('error') || qparams.get('error');
+      const oauthErrorDesc = params.get('error_description') || qparams.get('error_description');
+
+      if (oauthError) {
+        document.getElementById('auth-message').textContent = `OAuth error: ${oauthErrorDesc || oauthError}`;
+        document.getElementById('auth-message').className = 'status-message error';
+        console.error('OAuth error details:', { error: oauthError, description: oauthErrorDesc });
+        return;
+      }
+
+      accessToken = params.get('access_token');
+
+      if (accessToken) {
+        sessionStorage.setItem('purecloud_token', accessToken);
+        // Clean URL after successful auth
+        window.location.hash = '';
+        initializeApplication();
+      } else if (sessionStorage.getItem('purecloud_token')) {
+        accessToken = sessionStorage.getItem('purecloud_token');
+        initializeApplication();
+      } else {
+        console.log('Initiating OAuth flow with:', { clientId, redirectUri });
+        window.location.href = oauthUrl;
+      }
+    });
+
+    function initializeApplication() {
+      document.getElementById('auth-message').textContent = 'Authenticated successfully!';
+      document.getElementById('auth-message').className = 'status-message success';
+      setTimeout(() => { 
+        document.getElementById('auth-message').style.display = 'none'; 
+      }, 2000);
+
+      initializeWorkTeamManagement();
+    }
+
+    // =======================
+    // WORK TEAM MANAGEMENT FUNCTIONS
+    async function initializeWorkTeamManagement() {
+      await fetchTeamsForWorkTeam();
+      await loadUserMappingForTeamManagement();
+      
+      // Set up event listeners
+      document.getElementById('loadTeamMembersBtn').addEventListener('click', loadTeamMembers);
+      document.getElementById('changeTeamBtn').addEventListener('click', changeTeamForSelectedAgents);
+      document.getElementById('removeFromTeamBtn').addEventListener('click', removeSelectedFromTeam);
+      document.getElementById('searchAgentsBtn').addEventListener('click', searchAgentsWithoutTeam);
+      document.getElementById('addAgentsWithoutTeamBtn').addEventListener('click', addAgentsWithoutTeam);
+    }
+    
+    async function loadUserMappingForTeamManagement() {
+      try {
+        const users = await fetchAllPages('https://api.mypurecloud.ie/api/v2/users?pageSize=100');
+        userMapping = {};
+        users.forEach(user => { userMapping[user.id] = user.name; });
+      } catch (error) {
+        console.error("Error loading user mapping:", error);
+        showStatusMessage('teamStatus', 'Error loading user names: ' + error.message, 'error');
+      }
+    }
+    
+    async function fetchTeamsForWorkTeam() {
+      try {
+        const response = await fetch(`https://api.mypurecloud.ie/api/v2/teams`, {
+          headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        availableTeams = data.entities || [];
+        populateTeamDropdown();
+      } catch (error) {
+        console.error('Error fetching teams:', error);
+        showStatusMessage('teamStatus', 'Error fetching teams: ' + error.message, 'error');
+      }
+    }
+    
+    function populateTeamDropdown() {
+      const teamDropdown = document.getElementById('teamDropdown');
+      teamDropdown.innerHTML = '<option value="">Select Team</option>';
+      availableTeams.forEach(team => {
+        const option = document.createElement('option');
+        option.value = team.id;
+        option.textContent = team.name;
+        teamDropdown.appendChild(option);
+      });
+    }
+    
+    async function loadTeamMembers() {
+      const teamId = document.getElementById('teamDropdown').value;
+      if (!teamId) { showStatusMessage('teamStatus', 'Please select a team.', 'error'); return; }
+      showStatusMessage('teamStatus', 'Loading team members...', 'info');
+      try {
+        const response = await fetch(`https://api.mypurecloud.ie/api/v2/teams/${teamId}/members`, {
+          headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) { throw new Error(`Error fetching members: ${response.statusText}`); }
+        const data = await response.json();
+        const members = data.entities || [];
+        populateTeamMembersTable(members, teamId);
+        showStatusMessage('teamStatus', `Loaded ${members.length} team members.`, 'success');
+      } catch (error) {
+        console.error('Error loading team members:', error);
+        showStatusMessage('teamStatus', 'Error loading team members: ' + error.message, 'error');
+      }
+    }
+    
+    function populateTeamMembersTable(members, currentTeamId) {
+      const tbody = document.querySelector('#teamMembersTable tbody');
+      tbody.innerHTML = "";
+      const currentTeam = availableTeams.find(team => team.id === currentTeamId);
+      const currentTeamName = currentTeam ? currentTeam.name : '';
+      members.forEach(member => {
+        const agentName = userMapping[member.id] || member.id;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input type="checkbox" data-user-id="${member.id}"></td>
+          <td>${agentName}</td>
+          <td>${currentTeamName}</td>
+          <td>
+            <select class="new-team-select" data-user-id="${member.id}">
+              <option value="">Select new team</option>
+              ${availableTeams.map(team => `<option value="${team.id}">${team.name}</option>`).join('')}
+            </select>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+      const selectAllCheckbox = document.getElementById('selectAllTeamMembers');
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('#teamMembersTable tbody input[type="checkbox"]');
+        checkboxes.forEach(cb => { cb.checked = this.checked; });
+      });
+    }
+    
+    // CHANGE TEAM: First remove then add.
+    async function changeTeamForSelectedAgents() {
+      const currentTeamId = document.getElementById('teamDropdown').value;
+      if (!currentTeamId) { 
+        showStatusMessage('teamStatus', 'Please select a current team.', 'error'); 
+        return; 
+      }
+      const teamMembersTable = document.getElementById('teamMembersTable');
+      const checkboxes = teamMembersTable.querySelectorAll('tbody input[type="checkbox"]:checked');
+      if (checkboxes.length === 0) { 
+        showStatusMessage('teamStatus', 'Please select at least one agent.', 'error'); 
+        return; 
+      }
+      
+      // Gather agent IDs for removal and group by new team for addition.
+      let removalUserIds = [];
+      let addGroups = {};  // key: newTeamId, value: array of userIds
+      checkboxes.forEach(cb => {
+        const userId = cb.getAttribute('data-user-id');
+        const selectEl = teamMembersTable.querySelector(`select.new-team-select[data-user-id="${userId}"]`);
+        if (selectEl && selectEl.value) {
+          removalUserIds.push(userId);
+          const newTeamId = selectEl.value;
+          if (!addGroups[newTeamId]) { addGroups[newTeamId] = []; }
+          addGroups[newTeamId].push(userId);
+        }
+      });
+      
+      if (removalUserIds.length === 0) {
+        showStatusMessage('teamStatus', 'No agents have a new team selected.', 'error');
+        return;
+      }
+      
+      // Show and reset progress bar.
+      const progressContainer = document.getElementById('progressContainer');
+      const teamProgress = document.getElementById('teamProgress');
+      progressContainer.style.display = 'block';
+      teamProgress.value = 0;
+      
+      // Step 1: Remove selected agents from current team.
+      try {
+        const idsParam = removalUserIds.join(',');
+        const removeResponse = await fetch(`https://api.mypurecloud.ie/api/v2/teams/${currentTeamId}/members?id=${idsParam}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        if (!removeResponse.ok) {
+          const errorData = await removeResponse.json();
+          throw new Error(errorData.message || 'Removal failed');
+        }
+        teamProgress.value = 50;
+      } catch (error) {
+        progressContainer.style.display = 'none';
+        showStatusMessage('teamStatus', 'Error removing agents: ' + error.message, 'error');
+        return;
+      }
+      
+      // Step 2: Add agents to their new teams.
+      let totalGroups = Object.keys(addGroups).length;
+      let groupsProcessed = 0;
+      let totalAdded = 0;
+      let errorMessages = [];
+      for (const newTeamId in addGroups) {
+        try {
+          const response = await fetch(`https://api.mypurecloud.ie/api/v2/teams/${newTeamId}/members`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ memberIds: addGroups[newTeamId] })
+          });
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Addition failed');
+          }
+          totalAdded += addGroups[newTeamId].length;
+        } catch (error) {
+          errorMessages.push(`Team ${newTeamId}: ${error.message}`);
+        }
+        groupsProcessed++;
+        // Update progress: assume removal is 50% and addition is the remaining 50%.
+        teamProgress.value = 50 + (50 * (groupsProcessed / totalGroups));
+      }
+      
+      setTimeout(() => { progressContainer.style.display = 'none'; }, 1000);
+      
+      if (errorMessages.length > 0) {
+        showStatusMessage('teamStatus', `Changed team for ${totalAdded} agents. Errors: ${errorMessages.join('; ')}`, 'warning');
+      } else {
+        showStatusMessage('teamStatus', `Successfully changed team for ${totalAdded} agents.`, 'success');
+      }
+      loadTeamMembers();
+    }
+    
+    // Remove Selected From Team using one DELETE call with a comma-separated list.
+    async function removeSelectedFromTeam() {
+      const currentTeamId = document.getElementById('teamDropdown').value;
+      if (!currentTeamId) { 
+        showStatusMessage('teamStatus', 'Please select a team.', 'error'); 
+        return; 
+      }
+      const teamMembersTable = document.getElementById('teamMembersTable');
+      const checkboxes = teamMembersTable.querySelectorAll('tbody input[type="checkbox"]:checked');
+      if (checkboxes.length === 0) { 
+        showStatusMessage('teamStatus', 'Please select at least one agent.', 'error'); 
+        return; 
+      }
+      let userIds = [];
+      checkboxes.forEach(cb => { userIds.push(cb.getAttribute('data-user-id')); });
+      const idsParam = userIds.join(',');
+      
+      // Show and reset progress bar.
+      const progressContainer = document.getElementById('progressContainer');
+      const teamProgress = document.getElementById('teamProgress');
+      progressContainer.style.display = 'block';
+      teamProgress.value = 0;
+      
+      try {
+        const response = await fetch(`https://api.mypurecloud.ie/api/v2/teams/${currentTeamId}/members?id=${idsParam}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Removal failed');
+        }
+        teamProgress.value = 100;
+        setTimeout(() => { progressContainer.style.display = 'none'; }, 1000);
+        showStatusMessage('teamStatus', `Successfully removed ${userIds.length} agents from the team.`, 'success');
+        loadTeamMembers();
+      } catch (error) {
+        console.error('Error removing agents:', error);
+        setTimeout(() => { progressContainer.style.display = 'none'; }, 1000);
+        showStatusMessage('teamStatus', 'Error removing agents: ' + error.message, 'error');
+      }
+    }
+    
+    // =======================
+    // New Functions for Searching Agents Without a Team
+    async function searchAgentsWithoutTeam() {
+      showStatusMessage('searchStatus', 'Searching agents without team...', 'info');
+      try {
+        let assignedUserIds = new Set();
+        const teamPromises = availableTeams.map(team => {
+          return fetch(`https://api.mypurecloud.ie/api/v2/teams/${team.id}/members`, {
+            headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
+          })
+          .then(res => res.json())
+          .then(data => { (data.entities || []).forEach(member => assignedUserIds.add(member.id)); });
+        });
+        await Promise.all(teamPromises);
+        const allUsers = Object.keys(userMapping).map(id => ({ id, name: userMapping[id] }));
+        const searchTerm = document.getElementById('agentSearch').value.toLowerCase();
+        let usersWithoutTeam = allUsers.filter(user => {
+          if (assignedUserIds.has(user.id)) return false;
+          if (searchTerm) {
+            return user.name.toLowerCase().includes(searchTerm) || user.id.toLowerCase().includes(searchTerm);
+          }
+          return true;
+        });
+        populateAgentsWithoutTeamTable(usersWithoutTeam);
+        showStatusMessage('searchStatus', `Found ${usersWithoutTeam.length} agents without a work team.`, 'success');
+      } catch (error) {
+        console.error("Error searching agents without team:", error);
+        showStatusMessage('searchStatus', 'Error searching agents: ' + error.message, 'error');
+      }
+    }
+    
+    function populateAgentsWithoutTeamTable(users) {
+      const tbody = document.querySelector('#agentsWithoutTeamTable tbody');
+      tbody.innerHTML = "";
+      users.forEach(user => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input type="checkbox" data-user-id="${user.id}"></td>
+          <td>${user.name}</td>
+          <td>
+            <select class="new-team-select" data-user-id="${user.id}">
+              <option value="">Select team</option>
+              ${availableTeams.map(team => `<option value="${team.id}">${team.name}</option>`).join('')}
+            </select>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+      const selectAllCheckbox = document.getElementById('selectAllAgentsWithoutTeam');
+      selectAllCheckbox.checked = false;
+      selectAllCheckbox.addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('#agentsWithoutTeamTable tbody input[type="checkbox"]');
+        checkboxes.forEach(cb => { cb.checked = this.checked; });
+      });
+    }
+    
+    async function addAgentsWithoutTeam() {
+      const table = document.getElementById('agentsWithoutTeamTable');
+      const checkboxes = table.querySelectorAll('tbody input[type="checkbox"]:checked');
+      if (checkboxes.length === 0) {
+        showStatusMessage('searchStatus', 'Please select at least one agent to add.', 'error');
+        return;
+      }
+      let addMap = {};
+      checkboxes.forEach(cb => {
+        const userId = cb.getAttribute('data-user-id');
+        const selectEl = table.querySelector(`select.new-team-select[data-user-id="${userId}"]`);
+        if (selectEl && selectEl.value) {
+          if (!addMap[selectEl.value]) { addMap[selectEl.value] = []; }
+          addMap[selectEl.value].push(userId);
+        }
+      });
+      let totalAdded = 0;
+      let errorMessages = [];
+      for (const newTeamId in addMap) {
+        try {
+          const response = await fetch(`https://api.mypurecloud.ie/api/v2/teams/${newTeamId}/members`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ memberIds: addMap[newTeamId] })
+          });
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Addition failed');
+          }
+          totalAdded += addMap[newTeamId].length;
+        } catch (error) {
+          errorMessages.push(`Team ${newTeamId}: ${error.message}`);
+        }
+      }
+      if (errorMessages.length > 0) {
+        showStatusMessage('searchStatus', `Added ${totalAdded} agents. Errors: ${errorMessages.join('; ')}`, 'warning');
+      } else {
+        showStatusMessage('searchStatus', `Successfully added ${totalAdded} agents to teams.`, 'success');
+      }
+      searchAgentsWithoutTeam();
+    }
+    
+    // =======================
+    // Utility Functions
+    async function fetchAllPages(url) {
+      let allItems = [];
+      let pageNumber = 1;
+      let hasMorePages = true;
+      while (hasMorePages) {
+        const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}pageNumber=${pageNumber}&pageSize=100`, {
+          headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) { throw new Error(`Error fetching data: ${response.status} ${response.statusText}`); }
+        const data = await response.json();
+        if (data.entities) { allItems = allItems.concat(data.entities); }
+        else if (Array.isArray(data)) { allItems = allItems.concat(data); }
+        if (data.pageCount && data.pageCount > pageNumber) { pageNumber++; }
+        else { hasMorePages = false; }
+      }
+      return allItems;
+    }
+    
+    function showStatusMessage(elementId, message, type) {
+      const element = document.getElementById(elementId);
+      element.innerHTML = message;
+      element.className = `status-message ${type}`;
+      element.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
