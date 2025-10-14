@@ -1,280 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Work Team Management - AdminHub by IPI</title>
-  <link href="https://fonts.googleapis.com/css2?family=Aptos:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <title>Work Team Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
-    :root {
-      --primary-color: #63AB8F;
-      --primary-dark: #549e7a;
-      --header-bg: #63AB8F;
-      --text-dark: #2c3e50;
-      --text-medium: #555;
-      --text-light: #777;
-      --border-color: #ddd;
-      --light-bg: #f5f7fa;
-      --card-bg: #f9f9f9;
-      --error-color: #dc3545;
-      --success-color: #28a745;
-      --info-color: #17a2b8;
-      --warning-color: #ffc107;
+    :root{
+      --primary-color:#63AB8F; --secondary-color:#4A8C7D; --border-color:#DEE2E6;
+      --light-bg:#F8F9FA; --card-bg:#FFFFFF; --text-color:#2C3E50; --text-light:#6C757D;
+      --pill:#e9f6f0;
     }
-    
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    body{
+      font-family:'Aptos','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+      margin:20px;padding:20px;max-width:1200px;background:var(--light-bg);color:var(--text-color)
     }
-    
-    body {
-      font-family: 'Aptos', Arial, sans-serif;
-      background-color: var(--light-bg);
-      color: var(--text-dark);
-      line-height: 1.6;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-    
-    header {
-      background-color: var(--header-bg);
-      color: white;
-      padding: 15px 5%;
-      display: flex;
-      align-items: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      position: fixed;
-      width: 100%;
-      top: 0;
-      z-index: 100;
-    }
+    #logo-container{text-align:center;margin-bottom:20px} #logo{width:300px}
+    h1{margin:0 0 16px}
+    .card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:24px;margin-top:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    label{display:block;font-weight:600;margin-bottom:6px}
+    input,select,button,textarea{padding:10px;border:1px solid var(--border-color);border-radius:6px;background:#fff;font-size:14px}
+    button{background:var(--primary-color);color:#fff;font-weight:600;cursor:pointer;transition:background .2s}
+    button:hover{background:var(--secondary-color)} button:disabled{background:var(--text-light);cursor:not-allowed}
+    .controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;align-items:end}
+    .full-width-btn{width:100%;padding:14px 18px;font-size:16px;margin-top:12px}
+    .muted{color:var(--text-light);font-size:12px}
+    .section-title{margin:0 0 10px;color:var(--secondary-color)}
 
-    .header-content {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
+    #messageContainer{display:none;margin-top:12px}
+    .error-message{color:#b4231a;background:#fee2e2;border:1px solid #fecaca;padding:10px;border-radius:6px}
+    .success-message{color:#14532d;background:#dcfce7;border:1px solid #bbf7d0;padding:10px;border-radius:6px}
+    .info-message{color:#6b4e16;background:#fff7ed;border:1px solid #ffedd5;padding:10px;border-radius:6px}
 
-    .logo img {
-      height: 40px;
-    }
-    
-    .app-container {
-      display: flex;
-      flex: 1;
-      margin-top: 70px;
-      width: 100%;
-      max-width: 1400px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    
-    .sidebar {
-      width: 250px;
-      background-color: white;
-      box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-      padding: 20px 0;
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      height: calc(100vh - 70px);
-      overflow-y: auto;
-      left: 0;
-    }
-    
-    .sidebar-nav {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-    }
-    
-    .sidebar a {
-      background-color: transparent;
-      border: none;
-      padding: 12px 25px;
-      text-align: left;
-      cursor: pointer;
-      font-size: 15px;
-      color: var(--text-medium);
-      width: 100%;
-      transition: all 0.3s;
-      border-left: 3px solid transparent;
-      display: flex;
-      justify-content: flex-end;
-      white-space: nowrap;
-      text-decoration: none;
-    }
-    
-    .sidebar a:hover {
-      background-color: rgba(99, 171, 143, 0.1);
-      color: var(--text-dark);
-    }
-    
-    .sidebar a.active {
-      background-color: rgba(99, 171, 143, 0.1);
-      color: var(--primary-color);
-      border-left: 3px solid var(--primary-color);
-      font-weight: 500;
-    }
-    
-    .sidebar a i {
-      margin-right: 10px;
-      width: 20px;
-      text-align: center;
-      font-style: normal;
-      flex-shrink: 0;
-    }
-    
-    .content-area {
-      flex: 1;
-      padding: 30px 20px;
-      margin-left: 250px;
-      width: calc(100% - 250px);
-      max-width: 100%;
-    }
-    
-    .app-window {
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 15px rgba(0,0,0,0.05);
-      padding: 30px;
-      width: 100%;
-      max-width: 100%;
-      overflow: hidden;
-    }
-    
-    /* Common Form Styles */
-    .form-section {
-      margin-bottom: 30px;
-      width: 100%;
-    }
-    
-    .form-section h2 {
-      color: var(--text-dark);
-      font-size: 20px;
-      font-weight: 500;
-      margin-bottom: 20px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid var(--primary-color);
-      display: inline-block;
-    }
-    
-    .form-section h3 {
-      color: var(--text-dark);
-      font-size: 18px;
-      font-weight: 500;
-      margin: 25px 0 15px 0;
-      padding-bottom: 5px;
-      border-bottom: 1px solid var(--border-color);
-    }
-    
-    .form-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 25px;
-      margin-bottom: 20px;
-      width: 100%;
-    }
-    
-    .form-group {
-      flex: 1;
-      min-width: 250px;
-      max-width: 100%;
-    }
-    
-    label {
-      display: block;
-      font-weight: 500;
-      color: var(--text-medium);
-      margin-bottom: 8px;
-    }
-    
-    input, select {
-      width: 100%;
-      padding: 12px 15px;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      font-size: 15px;
-      transition: all 0.3s;
-      max-width: 100%;
-    }
-    
-    input:focus, select:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(99, 171, 143, 0.2);
-    }
-    
-    button {
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 12px 20px;
-      font-size: 15px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    button:hover {
-      background-color: var(--primary-dark);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    button:disabled {
-      background-color: #cccccc;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-    
-    .status-message {
-      margin-top: 20px;
-      padding: 12px 15px;
-      border-radius: 6px;
-      border-left: 4px solid transparent;
-    }
-    
-    .error {
-      color: var(--error-color);
-      background-color: rgba(220, 53, 69, 0.1);
-      border-left-color: var(--error-color);
-    }
-    
-    .success {
-      color: var(--success-color);
-      background-color: rgba(40, 167, 69, 0.1);
-      border-left-color: var(--success-color);
-    }
-    
-    .info {
-      color: var(--info-color);
-      background-color: rgba(23, 162, 184, 0.1);
-      border-left-color: var(--info-color);
-    }
-    
-    .warning {
-      color: var(--warning-color);
-      background-color: rgba(255, 193, 7, 0.1);
-      border-left-color: var(--warning-color);
-    }
-    
     /* Results Tables */
     .results-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 20px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
     }
     
     .results-table th, 
@@ -287,9 +51,7 @@
     .results-table th {
       background-color: var(--primary-color);
       color: white;
-      font-weight: 500;
-      position: sticky;
-      top: 0;
+      font-weight: 600;
     }
     
     .results-table tr:hover {
@@ -330,191 +92,106 @@
       border-top: 1px solid var(--border-color);
       margin: 30px 0;
     }
-    
-    /* Responsive Adjustments */
-    @media (max-width: 1200px) {
-      .content-area {
-        padding: 30px 15px;
-      }
-      
-      .app-window {
-        padding: 25px;
-      }
+
+    /* Checkbox styling */
+    input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
     }
-    
-    @media (max-width: 992px) {
-      .app-container {
-        flex-direction: column;
-      }
-      .sidebar {
-        width: 100%;
-        flex-direction: row;
-        overflow-x: auto;
-        padding: 0;
-        position: relative;
-        height: auto;
-        left: auto;
-      }
-      .sidebar a {
-        padding: 15px 20px;
-        border-left: none;
-        border-bottom: 3px solid transparent;
-        white-space: nowrap;
-      }
-      .sidebar a.active {
-        border-left: none;
-        border-bottom: 3px solid var(--primary-color);
-      }
-      .content-area {
-        margin-left: 0;
-        width: 100%;
-        padding: 20px 15px;
-      }
-    }
-    
-    @media (max-width: 768px) {
-      .content-area {
-        padding: 20px 10px;
-      }
-      .app-window {
-        padding: 20px;
-      }
-      .form-row {
-        gap: 15px;
-      }
-      
-      .results-table th, 
-      .results-table td {
-        padding: 8px 10px;
-        font-size: 14px;
-      }
-      
-      button {
-        padding: 10px 15px;
-        font-size: 14px;
-      }
-    }
-    
-    @media (max-width: 576px) {
-      .header-content {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      
-      .logo img {
-        margin-left: 0;
-        margin-top: 10px;
-      }
-      
-      .form-group {
-        min-width: 100%;
-      }
-      
-      .results-table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-      }
+
+    .table-container {
+      overflow-x: auto;
+      margin-top: 20px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="header-content">
-      <h1>AdminHub by IPI</h1>
-      <div class="logo">
-        <img src="https://raw.githubusercontent.com/gmcglynn88/TimeoffApp/main/IPI_Primary%20Identity_Corporate_REVERSED_ECC.png" alt="IPI Logo">
-      </div>
-    </div>
-  </header>
-  <div class="app-container">
-    <div class="sidebar">
-      <div class="sidebar-nav">
-        <a href="index.html" class="tablink">
-          <i>←</i> Back to Dashboard
-        </a>
-        <a href="#" class="tablink active">
-          <i>👥</i> Work Team Management
-        </a>
-      </div>
-    </div>
-    <div class="content-area">
-      <div class="app-window">
-        <div class="form-section">
-          <h2>Work Team Management</h2>
-          <div id="auth-message" class="status-message info">Authenticating with PureCloud...</div>
-          
-          <!-- Section 1: Manage Team Members by Team -->
-          <h3>Manage Team Members by Team</h3>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="teamDropdown">Select Team (Current Team)</label>
-              <select id="teamDropdown"></select>
-            </div>
-          </div>
-          <button id="loadTeamMembersBtn">Load Team Members</button>
-          <div id="teamStatus" class="status-message" style="display: none;"></div>
-          
-          <!-- Progress Bar -->
-          <div id="progressContainer" style="margin-top: 10px; display: none;">
-            <progress id="teamProgress" value="0" max="100"></progress>
-          </div>
-          
-          <div style="overflow-x: auto; margin-top: 20px;">
-            <table class="results-table" id="teamMembersTable">
-              <thead>
-                <tr>
-                  <th><input type="checkbox" id="selectAllTeamMembers"></th>
-                  <th>Agent</th>
-                  <th>Current Team</th>
-                  <th>New Team</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          
-          <div class="form-row" style="margin-top: 20px;">
-            <button id="changeTeamBtn">Change Team for Selected Agents</button>
-            <button id="removeFromTeamBtn">Remove Selected From Team</button>
-          </div>
-          
-          <hr />
-          
-          <!-- Section 2: Search Agents Without a Work Team -->
-          <h3>Search Agents Without a Work Team</h3>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="agentSearch">Search Agents</label>
-              <input type="text" id="agentSearch" placeholder="Enter name or email...">
-            </div>
-            <div class="form-group">
-              <button id="searchAgentsBtn" style="margin-top: 25px;">Search Agents</button>
-            </div>
-          </div>
-          <div id="searchStatus" class="status-message" style="display: none;"></div>
-          
-          <div style="overflow-x: auto; margin-top: 20px;">
-            <table class="results-table" id="agentsWithoutTeamTable">
-              <thead>
-                <tr>
-                  <th><input type="checkbox" id="selectAllAgentsWithoutTeam"></th>
-                  <th>Agent</th>
-                  <th>New Team</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          
-          <div class="form-row" style="margin-top: 20px;">
-            <button id="addAgentsWithoutTeamBtn">Add Selected Agents To Team</button>
-          </div>
+  <div id="logo-container">
+    <img id="logo" src="https://raw.githubusercontent.com/gmcglynn88/TimeoffApp/main/IPI_Primary%20Identity_Corporate_REVERSED_ECC.png" alt="Company Logo">
+  </div>
+
+  <h1>Work Team Management</h1>
+
+  <div id="authCard" class="card">
+    <div id="auth-message" class="info-message">Authenticating with PureCloud...</div>
+  </div>
+
+  <div id="appContent" style="display:none;">
+    <div id="messageContainer"></div>
+
+    <!-- Section 1: Manage Team Members by Team -->
+    <div class="card">
+      <h2 class="section-title">Manage Team Members by Team</h2>
+      <div class="controls">
+        <div>
+          <label for="teamDropdown">Select Team (Current Team)</label>
+          <select id="teamDropdown"></select>
         </div>
       </div>
+      <button id="loadTeamMembersBtn">Load Team Members</button>
+      <div id="teamStatus" class="info-message" style="display: none;"></div>
+      
+      <!-- Progress Bar -->
+      <div id="progressContainer" style="margin-top: 10px; display: none;">
+        <progress id="teamProgress" value="0" max="100"></progress>
+      </div>
+      
+      <div class="table-container">
+        <table class="results-table" id="teamMembersTable">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="selectAllTeamMembers"></th>
+              <th>Agent</th>
+              <th>Current Team</th>
+              <th>New Team</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      
+      <div class="controls" style="margin-top: 20px;">
+        <button id="changeTeamBtn">Change Team for Selected Agents</button>
+        <button id="removeFromTeamBtn">Remove Selected From Team</button>
+      </div>
     </div>
+
+    <!-- Section 2: Search Agents Without a Work Team -->
+    <div class="card">
+      <h2 class="section-title">Search Agents Without a Work Team</h2>
+      <div class="controls">
+        <div>
+          <label for="agentSearch">Search Agents</label>
+          <input type="text" id="agentSearch" placeholder="Enter name or email..." style="width: 100%; max-width: 400px;">
+        </div>
+        <div>
+          <button id="searchAgentsBtn" style="margin-top: 25px;">Search Agents</button>
+        </div>
+      </div>
+      <div id="searchStatus" class="info-message" style="display: none;"></div>
+      
+      <div class="table-container">
+        <table class="results-table" id="agentsWithoutTeamTable">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="selectAllAgentsWithoutTeam"></th>
+              <th>Agent</th>
+              <th>New Team</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      
+      <button id="addAgentsWithoutTeamBtn" class="full-width-btn" style="margin-top: 20px;">Add Selected Agents To Team</button>
+    </div>
+
+    <div id="results" class="card" style="display:none;"></div>
   </div>
-  
+
   <script>
     // ===== OAuth Config =====
     const clientId = 'd4529142-7340-4cd8-a9f9-f3a4d25670df';
@@ -549,7 +226,7 @@
 
       if (oauthError) {
         document.getElementById('auth-message').textContent = `OAuth error: ${oauthErrorDesc || oauthError}`;
-        document.getElementById('auth-message').className = 'status-message error';
+        document.getElementById('auth-message').className = 'error-message';
         console.error('OAuth error details:', { error: oauthError, description: oauthErrorDesc });
         return;
       }
@@ -570,13 +247,21 @@
       }
     });
 
+    function showMessage(msg, type='error'){
+      const box = document.getElementById('messageContainer');
+      box.innerHTML = `<div class="${type}-message">${msg}</div>`;
+      box.style.display = 'block';
+      if (type === 'success') setTimeout(()=> box.style.display='none', 5000);
+    }
+
     function initializeApplication() {
       document.getElementById('auth-message').textContent = 'Authenticated successfully!';
-      document.getElementById('auth-message').className = 'status-message success';
+      document.getElementById('auth-message').className = 'success-message';
       setTimeout(() => { 
-        document.getElementById('auth-message').style.display = 'none'; 
+        document.getElementById('authCard').style.display = 'none'; 
       }, 2000);
 
+      document.getElementById('appContent').style.display = 'block';
       initializeWorkTeamManagement();
     }
 
@@ -934,7 +619,7 @@
     function showStatusMessage(elementId, message, type) {
       const element = document.getElementById(elementId);
       element.innerHTML = message;
-      element.className = `status-message ${type}`;
+      element.className = `${type}-message`;
       element.style.display = 'block';
     }
   </script>
