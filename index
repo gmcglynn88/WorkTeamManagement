@@ -517,8 +517,11 @@
   
   <script>
     // ===== OAuth Config =====
-    const clientId = 'd4529142-7340-4cd8-a9f9-f3a4d25670df';
-    const redirectUri = window.location.origin + window.location.pathname;
+    const clientId = '4652c8b5-9117-43c6-8e54-738aebb8';
+    
+    // Use the EXACT URI that's registered in Genesys Cloud
+    const redirectUri = 'https://gmcglynn88.github.io/WorkTeamManagement/';
+    
     const oauthUrl = `https://login.mypurecloud.ie/oauth/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
     // Debug logging
