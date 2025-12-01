@@ -159,7 +159,9 @@
       <div class="controls">
         <div>
           <label for="teamDropdown">Select Team (Current Team)</label>
-          <div id="teamDropdown" class="checkbox-dropdown"></div>
+          <div id="teamDropdown" class="checkbox-dropdown">
+            <div class="loading-message">Loading teams...</div>
+          </div>
           <div class="selected-teams-display" id="teamDisplay">
             <div class="muted">No teams selected</div>
           </div>
@@ -237,13 +239,6 @@
     const redirectUri = 'https://gmcglynn88.github.io/WorkTeamManagement/';
     
     const oauthUrl = `https://login.mypurecloud.ie/oauth/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
-    // Debug logging
-    console.log('OAuth Configuration:');
-    console.log('- Client ID:', clientId);
-    console.log('- Redirect URI:', redirectUri);
-    console.log('- Encoded Redirect URI:', encodeURIComponent(redirectUri));
-    console.log('- Full OAuth URL:', oauthUrl);
 
     let accessToken = null;
 
@@ -415,7 +410,9 @@
 
       trigger.addEventListener('click', () => { 
         panel.classList.toggle('open'); 
-        search.focus(); 
+        if (panel.classList.contains('open')) {
+          search.focus();
+        }
       });
       
       document.addEventListener('click', (e) => { 
@@ -451,12 +448,14 @@
 
       function setOptions(newOptions) {
         options = newOptions || [];
+        // Clear any selected values that aren't in the new options
         selected.forEach(v => { 
           if (!options.some(o => o.value === v)) selected.delete(v); 
         });
         render(search.value); 
         updateSummary(); 
         updateSelectAllState();
+        updateTeamDisplay();
       }
       
       function getSelectedValues() { 
@@ -475,7 +474,9 @@
         updateTeamDisplay();
       }
 
+      // Initial render
       render('');
+      
       return { 
         setOptions, 
         getSelectedValues, 
@@ -487,14 +488,28 @@
     // =======================
     // WORK TEAM MANAGEMENT FUNCTIONS
     async function initializeWorkTeamManagement() {
+      // First fetch teams and users
       await fetchTeamsForWorkTeam();
       await loadUserMappingForTeamManagement();
       
-      // Create checkbox dropdown for teams
-      teamDropdownInstance = createCheckboxDropdown('teamDropdown', { 
-        placeholder: 'Select team(s)', 
-        searchPlaceholder: 'Search teams...' 
-      }, false); // Set to false for single select
+      // Then create and populate the dropdown
+      if (availableTeams.length > 0) {
+        // Create checkbox dropdown for teams
+        teamDropdownInstance = createCheckboxDropdown('teamDropdown', { 
+          placeholder: 'Select team(s)', 
+          searchPlaceholder: 'Search teams...' 
+        }, false); // Set to false for single select
+        
+        // Populate with teams
+        const teamOpts = availableTeams
+          .map(team => ({ value: team.id, label: team.name }))
+          .sort((a, b) => a.label.localeCompare(b.label));
+        
+        teamDropdownInstance.setOptions(teamOpts);
+      } else {
+        document.getElementById('teamDropdown').innerHTML = 
+          '<div class="error-message" style="margin: 10px 0">No teams found. Please check API permissions.</div>';
+      }
       
       // Set up event listeners
       document.getElementById('loadTeamMembersBtn').addEventListener('click', loadTeamMembers);
@@ -506,13 +521,16 @@
     
     async function loadUserMappingForTeamManagement() {
       try {
+        console.log('Loading user mapping...');
         const users = await fetchAllPages('https://api.mypurecloud.ie/api/v2/users?pageSize=100');
+        console.log(`Found ${users.length} users total`);
         userMapping = {};
         users.forEach(user => { 
           if (user.name && user.name.trim() !== '' && user.name !== 'Unknown User') {
             userMapping[user.id] = user.name; 
           }
         });
+        console.log(`Created user mapping for ${Object.keys(userMapping).length} valid users`);
       } catch (error) {
         console.error("Error loading user mapping:", error);
         showStatusMessage('teamStatus', 'Error loading user names: ' + error.message, 'error');
@@ -521,29 +539,36 @@
     
     async function fetchTeamsForWorkTeam() {
       try {
+        console.log('Fetching teams...');
         const response = await fetch(`https://api.mypurecloud.ie/api/v2/teams`, {
           headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
         });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('API Error response:', errorText);
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
         const data = await response.json();
         availableTeams = data.entities || [];
-        populateTeamDropdown();
+        console.log(`Found ${availableTeams.length} teams`);
+        
+        if (availableTeams.length === 0) {
+          console.warn('No teams found in the API response');
+        }
       } catch (error) {
         console.error('Error fetching teams:', error);
         showStatusMessage('teamStatus', 'Error fetching teams: ' + error.message, 'error');
       }
     }
     
-    function populateTeamDropdown() {
-      const teamOpts = availableTeams
-        .map(team => ({ value: team.id, label: team.name }))
-        .sort((a, b) => a.label.localeCompare(b.label));
-      
-      if (teamDropdownInstance) {
-        teamDropdownInstance.setOptions(teamOpts);
-      }
-    }
-    
     async function loadTeamMembers() {
+      if (!teamDropdownInstance) {
+        showStatusMessage('teamStatus', 'Team dropdown not initialized. Please refresh the page.', 'error');
+        return;
+      }
+      
       const selectedTeamIds = teamDropdownInstance.getSelectedValues();
       if (!selectedTeamIds.length) { 
         showStatusMessage('teamStatus', 'Please select a team.', 'error'); 
@@ -553,15 +578,22 @@
       // For now, only handle the first selected team (since it's single select anyway)
       const teamId = selectedTeamIds[0];
       showStatusMessage('teamStatus', 'Loading team members...', 'info');
+      
       try {
+        console.log(`Loading members for team: ${teamId}`);
         const response = await fetch(`https://api.mypurecloud.ie/api/v2/teams/${teamId}/members`, {
           headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
         });
+        
         if (!response.ok) { 
-          throw new Error(`Error fetching members: ${response.statusText}`); 
+          const errorText = await response.text();
+          console.error('Error fetching team members:', errorText);
+          throw new Error(`Error fetching members: ${response.status} ${response.statusText}`); 
         }
+        
         const data = await response.json();
         const members = data.entities || [];
+        console.log(`Loaded ${members.length} team members`);
         populateTeamMembersTable(members, teamId);
         showStatusMessage('teamStatus', `Loaded ${members.length} team members.`, 'success');
       } catch (error) {
@@ -573,8 +605,14 @@
     function populateTeamMembersTable(members, currentTeamId) {
       const tbody = document.querySelector('#teamMembersTable tbody');
       tbody.innerHTML = "";
+      
+      if (members.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No team members found</td></tr>';
+        return;
+      }
+      
       const currentTeam = availableTeams.find(team => team.id === currentTeamId);
-      const currentTeamName = currentTeam ? currentTeam.name : '';
+      const currentTeamName = currentTeam ? currentTeam.name : 'Unknown Team';
       
       members.forEach(member => {
         const agentName = userMapping[member.id] || member.id;
@@ -606,6 +644,11 @@
     
     // CHANGE TEAM: First remove then add.
     async function changeTeamForSelectedAgents() {
+      if (!teamDropdownInstance) {
+        showStatusMessage('teamStatus', 'Team dropdown not initialized.', 'error');
+        return;
+      }
+      
       const selectedTeamIds = teamDropdownInstance.getSelectedValues();
       if (!selectedTeamIds.length) { 
         showStatusMessage('teamStatus', 'Please select a current team.', 'error'); 
@@ -649,10 +692,13 @@
       // Step 1: Remove selected agents from current team.
       try {
         const idsParam = removalUserIds.join(',');
+        console.log(`Removing users: ${idsParam} from team: ${currentTeamId}`);
+        
         const removeResponse = await fetch(`https://api.mypurecloud.ie/api/v2/teams/${currentTeamId}/members?id=${idsParam}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
+        
         if (!removeResponse.ok) {
           const errorData = await removeResponse.json();
           throw new Error(errorData.message || 'Removal failed');
@@ -669,13 +715,16 @@
       let groupsProcessed = 0;
       let totalAdded = 0;
       let errorMessages = [];
+      
       for (const newTeamId in addGroups) {
         try {
+          console.log(`Adding ${addGroups[newTeamId].length} users to team: ${newTeamId}`);
           const response = await fetch(`https://api.mypurecloud.ie/api/v2/teams/${newTeamId}/members`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ memberIds: addGroups[newTeamId] })
           });
+          
           if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message || 'Addition failed');
@@ -701,6 +750,11 @@
     
     // Remove Selected From Team using one DELETE call with a comma-separated list.
     async function removeSelectedFromTeam() {
+      if (!teamDropdownInstance) {
+        showStatusMessage('teamStatus', 'Team dropdown not initialized.', 'error');
+        return;
+      }
+      
       const selectedTeamIds = teamDropdownInstance.getSelectedValues();
       if (!selectedTeamIds.length) { 
         showStatusMessage('teamStatus', 'Please select a team.', 'error'); 
@@ -720,6 +774,8 @@
       checkboxes.forEach(cb => { userIds.push(cb.getAttribute('data-user-id')); });
       const idsParam = userIds.join(',');
       
+      console.log(`Removing users: ${idsParam} from team: ${currentTeamId}`);
+      
       // Show and reset progress bar.
       const progressContainer = document.getElementById('progressContainer');
       const teamProgress = document.getElementById('teamProgress');
@@ -731,10 +787,12 @@
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
+        
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Removal failed');
         }
+        
         teamProgress.value = 100;
         setTimeout(() => { progressContainer.style.display = 'none'; }, 1000);
         showStatusMessage('teamStatus', `Successfully removed ${userIds.length} agents from the team.`, 'success');
@@ -750,16 +808,30 @@
     // New Functions for Searching Agents Without a Team
     async function searchAgentsWithoutTeam() {
       showStatusMessage('searchStatus', 'Searching agents without team...', 'info');
+      
       try {
         let assignedUserIds = new Set();
+        console.log('Checking membership for', availableTeams.length, 'teams');
+        
+        // Get all team members
         const teamPromises = availableTeams.map(team => {
           return fetch(`https://api.mypurecloud.ie/api/v2/teams/${team.id}/members`, {
             headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
           })
-          .then(res => res.json())
-          .then(data => { (data.entities || []).forEach(member => assignedUserIds.add(member.id)); });
+          .then(res => {
+            if (!res.ok) {
+              console.warn(`Failed to fetch members for team ${team.id}: ${res.status}`);
+              return { entities: [] };
+            }
+            return res.json();
+          })
+          .then(data => { 
+            (data.entities || []).forEach(member => assignedUserIds.add(member.id)); 
+          });
         });
+        
         await Promise.all(teamPromises);
+        console.log(`Found ${assignedUserIds.size} users assigned to teams`);
         
         // Get all users from userMapping
         const allUsers = Object.keys(userMapping).map(id => ({ id, name: userMapping[id] }));
@@ -776,6 +848,7 @@
         // Sort by name
         usersWithoutTeam.sort((a, b) => a.name.localeCompare(b.name));
         
+        console.log(`Found ${usersWithoutTeam.length} agents without a work team`);
         populateAgentsWithoutTeamTable(usersWithoutTeam);
         showStatusMessage('searchStatus', `Found ${usersWithoutTeam.length} agents without a work team.`, 'success');
       } catch (error) {
@@ -787,6 +860,12 @@
     function populateAgentsWithoutTeamTable(users) {
       const tbody = document.querySelector('#agentsWithoutTeamTable tbody');
       tbody.innerHTML = "";
+      
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">No agents found without a team</td></tr>';
+        return;
+      }
+      
       users.forEach(user => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -820,19 +899,23 @@
       }
       
       let addMap = {};
+      let usersWithoutTeam = 0;
+      
       checkboxes.forEach(cb => {
         const userId = cb.getAttribute('data-user-id');
         const selectEl = table.querySelector(`select.new-team-select[data-user-id="${userId}"]`);
         if (selectEl && selectEl.value) {
           if (!addMap[selectEl.value]) { addMap[selectEl.value] = []; }
           addMap[selectEl.value].push(userId);
+        } else {
+          usersWithoutTeam++;
         }
       });
       
       // Filter out users without a team selected
       const usersWithTeamSelected = Object.values(addMap).flat();
       if (usersWithTeamSelected.length === 0) {
-        showStatusMessage('searchStatus', 'Please select a team for each agent.', 'error');
+        showStatusMessage('searchStatus', `Please select a team for each agent. ${usersWithoutTeam} agent(s) have no team selected.`, 'error');
         return;
       }
       
@@ -841,11 +924,13 @@
       
       for (const newTeamId in addMap) {
         try {
+          console.log(`Adding ${addMap[newTeamId].length} users to team: ${newTeamId}`);
           const response = await fetch(`https://api.mypurecloud.ie/api/v2/teams/${newTeamId}/members`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ memberIds: addMap[newTeamId] })
           });
+          
           if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.message || 'Addition failed');
@@ -869,28 +954,47 @@
     async function fetchAllPages(url) {
       let allItems = [];
       let pageNumber = 1;
-      let hasMorePages = true;
-      while (hasMorePages) {
-        const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}pageNumber=${pageNumber}&pageSize=100`, {
-          headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
-        });
-        if (!response.ok) { 
-          throw new Error(`Error fetching data: ${response.status} ${response.statusText}`); 
+      let pageSize = 100;
+      let total = 0;
+      
+      console.log(`Fetching paginated data from: ${url}`);
+      
+      do {
+        try {
+          const response = await fetch(`${url}${url.includes('?') ? '&' : '?'}pageNumber=${pageNumber}&pageSize=${pageSize}`, {
+            headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' }
+          });
+          
+          if (!response.ok) { 
+            const errorText = await response.text();
+            console.error(`Error fetching page ${pageNumber}:`, errorText);
+            throw new Error(`Error fetching data: ${response.status} ${response.statusText}`); 
+          }
+          
+          const data = await response.json();
+          console.log(`Page ${pageNumber}: got ${data.entities ? data.entities.length : 0} items`);
+          
+          if (data.entities) { 
+            allItems = allItems.concat(data.entities); 
+          } else if (Array.isArray(data)) { 
+            allItems = allItems.concat(data); 
+          }
+          
+          total = data.total || 0;
+          pageNumber++;
+          
+          // Safety check - don't loop forever
+          if (pageNumber > 50) {
+            console.warn('Safety break: exceeded 50 pages');
+            break;
+          }
+        } catch (error) {
+          console.error(`Error on page ${pageNumber}:`, error);
+          throw error;
         }
-        const data = await response.json();
-        if (data.entities) { 
-          allItems = allItems.concat(data.entities); 
-        }
-        else if (Array.isArray(data)) { 
-          allItems = allItems.concat(data); 
-        }
-        if (data.pageCount && data.pageCount > pageNumber) { 
-          pageNumber++; 
-        }
-        else { 
-          hasMorePages = false; 
-        }
-      }
+      } while (allItems.length < total);
+      
+      console.log(`Total items fetched: ${allItems.length}`);
       return allItems;
     }
     
